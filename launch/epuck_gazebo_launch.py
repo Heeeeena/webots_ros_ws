@@ -7,14 +7,12 @@ from launch_ros.actions import Node
 from launch import LaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-from webots_ros2_driver.webots_launcher import WebotsLauncher
-from webots_ros2_driver.webots_controller import WebotsController
-from webots_ros2_driver.wait_for_controller_connection import WaitForControllerConnection
 from launch.actions import TimerAction
 
 def generate_launch_description():
     package_dir = get_package_share_directory('webots_demo')
-    world = LaunchConfiguration('world',default='epuck_world.wbt')
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+    world = LaunchConfiguration('world',default='gazebo_simple_world.world')
     use_rviz = LaunchConfiguration('rviz', default=True)
     use_sim_time = LaunchConfiguration('use_sim_time', default=True)
     use_slam_cartographer = LaunchConfiguration('cartographer', default=True)
@@ -22,10 +20,17 @@ def generate_launch_description():
     # explore = LaunchConfiguration('explore', default=False)
 
 
-    webots = WebotsLauncher(
-        world=PathJoinSubstitution([package_dir, 'worlds', world]),
-        ros2_supervisor=True
+    # Setup to launch the simulator and Gazebo world
+    gz_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+        launch_arguments={'gz_args': PathJoinSubstitution([
+            package_dir,
+            'worlds',
+            'gazebo_simple_world.world'
+        ])}.items(),
     )
+
 
     robot_state_publisher = Node(
         package='robot_state_publisher',
@@ -69,17 +74,22 @@ def generate_launch_description():
         mappings = [('/diffdrive_controller/cmd_vel', '/cmd_vel'), ('/diffdrive_controller/odom', '/odom')]
     else:
         mappings = [('/diffdrive_controller/cmd_vel_unstamped', '/cmd_vel'), ('/diffdrive_controller/odom', '/odom')]
-    epuck_driver = WebotsController(
-        robot_name='e-puck',
-        parameters=[
-            {'robot_description': robot_description_path,
-             'use_sim_time': use_sim_time,
-             'set_robot_state_publisher': True},
-            ros2_control_params
+    # Robot controller node (replacing WebotsController)
+    epuck_driver = Node(
+        package='controller_manager',
+        executable='spawner',
+        name='e_puck_driver',
+        parameters=[{
+            'robot_description': robot_description_path,
+            'use_sim_time': use_sim_time,
+            'set_robot_state_publisher': True, 
+        },
+        ros2_control_params
         ],
         remappings=mappings,
         respawn=True
     )
+
 
     # RViz
     rviz_config = os.path.join(get_package_share_directory('webots_demo'), 'rviz', 'all.rviz')
@@ -151,14 +161,9 @@ def generate_launch_description():
     #     condition=launch.conditions.IfCondition(explore))
     
     # Wait for the simulation to be ready to start RViz, the navigation and spawners
-    waiting_nodes = WaitForControllerConnection(
-        target_driver=epuck_driver,
-        nodes_to_start=[rviz] + slam_nodes + ros_control_spawners
-    )
-
+    waiting_nodes = [rviz] + slam_nodes + ros_control_spawners
     return LaunchDescription([
-        webots,
-        webots._supervisor,
+        gz_sim,
 
         robot_state_publisher,
         footprint_publisher,
@@ -166,7 +171,11 @@ def generate_launch_description():
         epuck_driver,
         
         epuck_scan,
-        waiting_nodes,
+        rviz,
+        slam_nodes[0],
+        slam_nodes[1],
+        ros_control_spawners[0],
+        ros_control_spawners[1],
 
         TimerAction(
             period=5.0,  # 延迟时间，单位为秒
@@ -176,12 +185,12 @@ def generate_launch_description():
         ),
 
         # This action will kill all nodes once the Webots simulation has exited
-        launch.actions.RegisterEventHandler(
-            event_handler=launch.event_handlers.OnProcessExit(
-                target_action=webots,
-                on_exit=[
-                    launch.actions.EmitEvent(event=launch.events.Shutdown())
-                ],
-            )
-        )
+        # launch.actions.RegisterEventHandler(
+        #     event_handler=launch.event_handlers.OnProcessExit(
+        #         target_action=gz_sim,
+        #         on_exit=[
+        #             launch.actions.EmitEvent(event=launch.events.Shutdown())
+        #         ],
+        #     )
+        # )
     ])

@@ -14,10 +14,11 @@ setup(
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*_launch.py'))),
         (os.path.join('share', package_name, 'worlds'), glob(os.path.join('worlds', '*.wbt'))),
+        (os.path.join('share', package_name, 'worlds'), glob(os.path.join('worlds', '*.world'))),
         (os.path.join('share', package_name, 'resource'), glob(os.path.join('resource', '*.urdf'))),
         (os.path.join('share', package_name, 'resource'), glob(os.path.join('resource', '*.yml'))),
         (os.path.join('share', package_name, 'rviz'), glob(os.path.join('rviz', '*.rviz'))),
-        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.lua')))
+        (os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*')))
 
     ],
     install_requires=['setuptools'],
@@ -31,7 +32,8 @@ setup(
         'console_scripts': [
             'obstacle_avoider = webots_demo.obstacle_avoider:main',
             'epuck_scan = webots_demo.epuck_scan:main',
-            'random_walk = webots_demo.random_walk:main'
+            'random_walk = webots_demo.random_walk:main',
+            'explore = webots_demo.explore:main'
         ],
     },
 )

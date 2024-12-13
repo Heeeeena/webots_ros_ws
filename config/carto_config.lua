@@ -53,11 +53,11 @@ TRAJECTORY_BUILDER_2D.min_range = 0.01
 TRAJECTORY_BUILDER_2D.max_range = 2.0
 TRAJECTORY_BUILDER_2D.missing_data_ray_length = 3.
 -- 为了防止子图里插入太多数据, 在插入子图之前之前对数据进行过滤
-TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.05
+-- TRAJECTORY_BUILDER_2D.submaps.grid_options_2d.resolution = 0.05
 TRAJECTORY_BUILDER_2D.motion_filter.max_angle_radians = math.rad(0.1)
 TRAJECTORY_BUILDER_2D.motion_filter.max_distance_meters = 0.1
 --构建子地图时使用的激光雷达扫描数据的数量，建议一个子图里插入雷达数据的个数的一半
-TRAJECTORY_BUILDER_2D.submaps.num_range_data = 20
+TRAJECTORY_BUILDER_2D.submaps.num_range_data = 80
 -- 几帧有效的点云数据进行一次扫描匹配，扫描匹配用于估计机器人位姿，匹配后能够及时纠正误差
 TRAJECTORY_BUILDER_2D.num_accumulated_range_data = 1
 -- 是否使用 real_time_correlative_scan_matcher 为ceres提供先验信息
@@ -75,7 +75,7 @@ TRAJECTORY_BUILDER_2D.real_time_correlative_scan_matcher.rotation_delta_cost_wei
 
 --后端参数
 --这个参数控制全局优化的频率。如果设置得过高，可能会导致优化不及时，从而在地图上看到抖动。可以尝试减小这个值，使优化更频繁。
-POSE_GRAPH.optimize_every_n_nodes = 0
+POSE_GRAPH.optimize_every_n_nodes = 160
 --在姿势估计期间控制对旋转里程计数据的信任。
 POSE_GRAPH.optimization_problem.local_slam_pose_translation_weight=1e10 --本地SLAM平移权重
 POSE_GRAPH.optimization_problem.local_slam_pose_rotation_weight=1e10 --本地SLAM旋转权重

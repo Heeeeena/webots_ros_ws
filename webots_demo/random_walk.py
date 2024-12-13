@@ -57,7 +57,7 @@ class RandomWalkNode(Node):
         """TOF 传感器的回调函数，用于检测障碍物"""
         # 如果检测到障碍物 (距离小于0.5米)
         if msg.range < 0.1 or self.ps0_value < 0.04 or self.ps7_value <0.04 or self.ps1_value <0.04 or self.ps6_value <0.04:
-            self.get_logger().info(f'Obstacle detected at {msg.range} meters')
+            # self.get_logger().info(f'Obstacle detected at {msg.range} meters')
             self.obstacle_detected = True
             
         else:
@@ -81,11 +81,11 @@ class RandomWalkNode(Node):
         if self.walk_or_rotate:
             if not self.obstacle_detected:
                 twist_msg.linear.x = 0.08  # 设置直线前进速度
-                self.get_logger().info('Moving forward')
+                # self.get_logger().info('Moving forward')
         else:
             twist_msg.angular.z = 0.4  # 设置旋转速度
             
-            self.get_logger().info(f'Turning')
+            # self.get_logger().info(f'Turning')
 
 
 
